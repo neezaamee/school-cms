@@ -16,6 +16,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/falcon-v3.26.0
+/public/vendors
 /storage/*.key
 /storage/pail
 /vendor
