@@ -266,9 +266,6 @@ class SchoolController extends Controller
 
         imagewebp($tmpImg, $fullPath . '/' . $filename, 80); 
         
-        imagedestroy($img);
-        imagedestroy($tmpImg);
-        
         return 'storage/' . $storageDir . '/' . $filename;
     }
     /**

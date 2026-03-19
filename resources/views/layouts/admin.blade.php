@@ -38,6 +38,14 @@
   <body>
     <main class="main" id="top">
       <div class="container" data-layout="container">
+        <script>
+          var isFluid = JSON.parse(localStorage.getItem('isFluid'));
+          if (isFluid) {
+            var container = document.querySelector('[data-layout="container"]');
+            container.classList.remove('container');
+            container.classList.add('container-fluid');
+          }
+        </script>
         <!-- Sidebar -->
         <nav class="navbar navbar-light navbar-vertical navbar-expand-xl">
           <div class="d-flex align-items-center">
@@ -192,14 +200,81 @@
               </div>
             </a>
 
+            <!-- Search Box (Decorative) -->
+            <ul class="navbar-nav align-items-center d-none d-lg-block">
+              <li class="nav-item">
+                <div class="search-box">
+                  <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
+                    <input class="form-control search-input fuzzy-search" type="search" placeholder="Search..." aria-label="Search" />
+                    <span class="fas fa-search search-box-icon"></span>
+                  </form>
+                </div>
+              </li>
+            </ul>
+
             <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+              <!-- Theme Toggler -->
+              <li class="nav-item px-2">
+                <div class="dropdown theme-control-dropdown">
+                    <a class="nav-link d-flex align-items-center dropdown-toggle pe-1 py-0" href="#" role="button" id="themeSwitchDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="fas fa-sun fs-7" data-fa-transform="shrink-2" data-theme-dropdown-toggle-icon="light"></span>
+                        <span class="fas fa-moon fs-7" data-fa-transform="shrink-3" data-theme-dropdown-toggle-icon="dark"></span>
+                        <span class="fas fa-adjust fs-7" data-fa-transform="shrink-2" data-theme-dropdown-toggle-icon="auto"></span>
+                    </a>
+                  <div class="dropdown-menu dropdown-menu-end dropdown-caret border py-0 mt-3" aria-labelledby="themeSwitchDropdown">
+                    <div class="bg-white dark__bg-1000 rounded-2 py-2">
+                      <button class="dropdown-item d-flex align-items-center gap-2" type="button" value="light" data-theme-control="theme"><span class="fas fa-sun"></span>Light<span class="fas fa-check dropdown-check-icon ms-auto text-600"></span></button>
+                      <button class="dropdown-item d-flex align-items-center gap-2" type="button" value="dark" data-theme-control="theme"><span class="fas fa-moon"></span>Dark<span class="fas fa-check dropdown-check-icon ms-auto text-600"></span></button>
+                      <button class="dropdown-item d-flex align-items-center gap-2" type="button" value="auto" data-theme-control="theme"><span class="fas fa-adjust"></span>Auto<span class="fas fa-check dropdown-check-icon ms-auto text-600"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Notifications -->
+              <li class="nav-item dropdown px-2">
+                <a class="nav-link notification-indicator notification-indicator-primary px-0" id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="fas fa-bell" data-fa-transform="shrink-6" style="font-size: 33px;"></span>
+                </a>
+                <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification" aria-labelledby="navbarDropdownNotification">
+                  <div class="card card-notification shadow-none">
+                    <div class="card-header">
+                      <div class="row justify-content-between align-items-center">
+                        <div class="col-auto"><h6 class="card-header-title mb-0">Notifications</h6></div>
+                        <div class="col-auto"><a class="card-link fw-normal" href="#!">Mark all as read</a></div>
+                      </div>
+                    </div>
+                    <div class="scrollbar-overlay" style="max-height:19rem">
+                      <div class="list-group list-group-flush fw-normal fs-11">
+                        <div class="list-group-title">NEW</div>
+                        <div class="list-group-item">
+                          <a class="notification notification-flush notification-unread" href="#!">
+                            <div class="notification-avatar">
+                              <div class="avatar avatar-2xl me-3">
+                                <img class="rounded-circle" src="{{ asset('assets/img/team/1-thumb.png') }}" alt="" />
+                              </div>
+                            </div>
+                            <div class="notification-body">
+                              <p class="mb-1"><strong>John Doe</strong> reacted to your post</p>
+                              <span class="notification-time"><span class="me-2" role="img" aria-label="Emoji">💬</span>Just now</span>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-footer text-center border-top"><a class="card-link d-block" href="#!">View all</a></div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- User Profile Dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link pe-0 ps-2" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <div class="avatar avatar-xl">
                     <img class="rounded-circle" src="{{ asset('assets/img/team/3-thumb.png') }}" alt="" />
                   </div>
                 </a>
-                <div class="dropdown-menu dropdown-caret dropdown-caret dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
+                <div class="dropdown-menu dropdown-caret dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
                   <div class="bg-white dark__bg-1000 rounded-2 py-2">
                     <div class="px-3 py-2">
                         <p class="mb-0 fw-bold">{{ auth()->user()->name }}</p>
@@ -219,6 +294,9 @@
           </nav>
 
           <!-- Main Content Area -->
+          <div class="mb-3 px-3">
+            @include('partials.breadcrumbs')
+          </div>
           @yield('content')
 
           <!-- Footer -->

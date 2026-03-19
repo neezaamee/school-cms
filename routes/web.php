@@ -19,6 +19,7 @@ Route::get('/', function () {
 
 // Public School Landing Page
 Route::get('/s/{slug}', [SchoolLandingController::class, 'show'])->name('school.landing');
+Route::get('/s/{slug}/login', [SchoolLandingController::class, 'login'])->name('school.login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -19,6 +19,12 @@ Object.keys(CONFIG).forEach(function (key) {
 if (JSON.parse(localStorage.getItem('isNavbarVerticalCollapsed'))) {
   document.documentElement.classList.add('navbar-vertical-collapsed');
 }
+if (JSON.parse(localStorage.getItem('isFluid'))) {
+  document.documentElement.classList.add('is-fluid');
+}
+if (JSON.parse(localStorage.getItem('isRTL'))) {
+  document.documentElement.setAttribute('dir', 'rtl');
+}
 if (localStorage.getItem('theme') === 'dark') {
   document.documentElement.setAttribute('data-bs-theme', 'dark');
 } else if (localStorage.getItem('theme') === 'auto') {

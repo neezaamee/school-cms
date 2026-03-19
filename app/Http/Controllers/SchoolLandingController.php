@@ -18,4 +18,14 @@ class SchoolLandingController extends Controller
 
         return view('school.landing', compact('school'));
     }
+
+    /**
+     * Display the branded login page for a specific school.
+     */
+    public function login($slug)
+    {
+        $school = School::where('slug', $slug)->firstOrFail();
+
+        return view('auth.school-login', compact('school'));
+    }
 }

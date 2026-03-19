@@ -55,7 +55,7 @@
             <li class="nav-item"><a class="nav-link text-white" href="#about">About</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="#contact">Contact</a></li>
             <li class="nav-item ms-lg-3">
-                <a class="btn btn-falcon-default btn-sm px-4" href="{{ route('login') }}">Login</a>
+                <a class="btn btn-falcon-default btn-sm px-4" href="{{ route('school.login', $school->slug) }}">Login</a>
             </li>
           </ul>
         </div>
