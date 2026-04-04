@@ -32,17 +32,22 @@
                     <input class="form-control @error('price') is-invalid @enderror" id="price" name="price" type="number" step="0.01" value="{{ old('price', $subscriptionPackage->price) }}" required />
                     @error('price') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label" for="student_limit">Student Limit</label>
                     <input class="form-control @error('student_limit') is-invalid @enderror" id="student_limit" name="student_limit" type="number" value="{{ old('student_limit', $subscriptionPackage->student_limit) }}" required />
                     @error('student_limit') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label" for="staff_limit">Staff Limit</label>
                     <input class="form-control @error('staff_limit') is-invalid @enderror" id="staff_limit" name="staff_limit" type="number" value="{{ old('staff_limit', $subscriptionPackage->staff_limit) }}" required />
                     @error('staff_limit') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label" for="user_limit">User Limit (Admin)</label>
+                    <input class="form-control @error('user_limit') is-invalid @enderror" id="user_limit" name="user_limit" type="number" value="{{ old('user_limit', $subscriptionPackage->user_limit) }}" required />
+                    @error('user_limit') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-3">
                     <label class="form-label" for="entry_limit">Entry Limit</label>
                     <input class="form-control @error('entry_limit') is-invalid @enderror" id="entry_limit" name="entry_limit" type="number" value="{{ old('entry_limit', $subscriptionPackage->entry_limit) }}" required />
                     @error('entry_limit') <div class="invalid-feedback">{{ $message }}</div> @enderror

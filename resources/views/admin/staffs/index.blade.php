@@ -21,10 +21,10 @@
                 <thead class="bg-200 text-900">
                     <tr>
                         <th class="sort">Name</th>
-                        <th class="sort">Email</th>
                         <th class="sort">Designation</th>
-                        <th class="sort">Campus</th>
-                        <th class="sort">Account Status</th>
+                        <th class="sort">Campus / School</th>
+                        <th class="sort">Email</th>
+                        <th class="sort text-center">Account Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -34,24 +34,30 @@
                         <td class="align-middle white-space-nowrap">
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-xl me-2">
-                                    <img class="rounded-circle" src="{{ $staff->profile_photo ? asset('storage/' . $staff->profile_photo) : asset('assets/img/team/avatar.png') }}" alt="" />
+                                    @if($staff->type === 'staff')
+                                        <img class="rounded-circle" src="{{ $staff->profile_photo ? asset('storage/' . $staff->profile_photo) : asset('assets/img/team/avatar.png') }}" alt="" />
+                                    @else
+                                        <div class="avatar-name rounded-circle"><span>{{ substr($staff->name, 0, 1) }}</span></div>
+                                    @endif
                                 </div>
                                 <div class="flex-1">
-                                    <h6 class="mb-0 ps-2 truncate">{{ $staff->name }}</h6>
+                                    <h6 class="mb-0 ps-2 truncate text-primary">{{ $staff->name }}</h6>
                                 </div>
                             </div>
                         </td>
+                        <td class="align-middle white-space-nowrap">
+                            <span class="badge {{ $staff->type === 'owner' ? 'badge-subtle-warning' : 'badge-subtle-primary' }}">
+                                {{ $staff->designation_name }}
+                            </span>
+                        </td>
+                        <td class="align-middle white-space-nowrap">
+                            <span class="fw-semi-bold">{{ $staff->location_name }}</span>
+                        </td>
                         <td class="align-middle white-space-nowrap">{{ $staff->email }}</td>
-                        <td class="align-middle white-space-nowrap">
-                            <span class="badge badge-subtle-primary">{{ $staff->designation->name }}</span>
-                        </td>
-                        <td class="align-middle white-space-nowrap">
-                            {{ $staff->campus ? $staff->campus->name : 'N/A' }}
-                        </td>
-                        <td class="align-middle white-space-nowrap">
+                        <td class="align-middle white-space-nowrap text-center">
                             @if($staff->user_id)
                                 <span class="badge rounded-pill badge-subtle-success">
-                                    <span class="fas fa-check me-1"></span>Connected
+                                    <span class="fas fa-check-circle me-1"></span>Active
                                 </span>
                             @else
                                 <span class="badge rounded-pill badge-subtle-secondary">
@@ -65,21 +71,27 @@
                                     <span class="fas fa-ellipsis-h fs-11"></span>
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end border py-2" aria-labelledby="staff-dropdown-{{ $staff->id }}">
-                                    @if(!$staff->user_id && auth()->user()->hasAnyRole(['super admin', 'school owner', 'principal', 'school administrator', 'school manager']))
-                                        <form action="{{ route('admin.staffs.create-user', $staff->id) }}" method="POST">
-                                            @csrf
-                                            <button class="dropdown-item text-primary" type="submit">Create User Account</button>
-                                        </form>
+                                    @if($staff->type === 'staff')
+                                        @if(!$staff->user_id && auth()->user()->hasAnyRole(['super admin', 'school owner', 'principal', 'school administrator', 'school manager']))
+                                            <form action="{{ route('admin.staffs.create-user', $staff->id) }}" method="POST">
+                                                @csrf
+                                                <button class="dropdown-item text-primary" type="submit">Create User Account</button>
+                                            </form>
+                                            <div class="dropdown-divider"></div>
+                                        @endif
+                                        <a class="dropdown-item" href="{{ route('admin.staffs.show', $staff->id) }}">View Profile</a>
+                                        <a class="dropdown-item" href="{{ route('admin.staffs.edit', $staff->id) }}">Edit Record</a>
                                         <div class="dropdown-divider"></div>
+                                        <form action="{{ route('admin.staffs.destroy', $staff->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="dropdown-item text-danger" type="submit">Delete</button>
+                                        </form>
+                                    @else
+                                        {{-- Actions for owners --}}
+                                        <a class="dropdown-item" href="{{ route('users.edit', $staff->user_id) }}">Manage Account</a>
+                                        <a class="dropdown-item" href="{{ route('schools.show', \App\Models\User::find($staff->user_id)->school_id ?? 0) }}">View School</a>
                                     @endif
-                                    <a class="dropdown-item" href="{{ route('admin.staffs.show', $staff->id) }}">View Profile</a>
-                                    <a class="dropdown-item" href="{{ route('admin.staffs.edit', $staff->id) }}">Edit</a>
-                                    <div class="dropdown-divider"></div>
-                                    <form action="{{ route('admin.staffs.destroy', $staff->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="dropdown-item text-danger" type="submit">Delete</button>
-                                    </form>
                                 </div>
                             </div>
                         </td>

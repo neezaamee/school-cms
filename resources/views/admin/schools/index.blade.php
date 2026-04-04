@@ -25,12 +25,19 @@
                         <th class="sort pe-1 align-middle white-space-nowrap">School Name</th>
                         <th class="sort pe-1 align-middle white-space-nowrap">Location (City, Country)</th>
                         <th class="sort pe-1 align-middle white-space-nowrap text-center">Package</th>
-                        <th class="sort pe-1 align-middle white-space-nowrap text-center">Users</th>
+                        <th class="sort pe-1 align-middle white-space-nowrap text-center">Users (Staff+Stu)</th>
+                        <th class="sort pe-1 align-middle white-space-nowrap text-center">Staff</th>
+                        <th class="sort pe-1 align-middle white-space-nowrap text-center">Students</th>
+                        <th class="sort pe-1 align-middle white-space-nowrap text-center">Entries</th>
                         <th class="align-middle no-sort text-end px-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="list">
                     @foreach($schools as $school)
+                    @php
+                        $package = $school->subscriptionPackage;
+                        $totalEntries = ($school->attendance_count ?? 0) + ($school->invoices_count ?? 0) + ($school->exam_marks_count ?? 0);
+                    @endphp
                     <tr class="btn-reveal-trigger">
                         <td class="align-middle white-space-nowrap">
                             <div class="d-flex align-items-center">
@@ -52,13 +59,28 @@
                             <span class="text-500 fs-11">{{ $school->mainCampus->country->name ?? 'N/A' }}</span>
                         </td>
                         <td class="align-middle text-center">
-                            @if($school->subscriptionPackage)
-                                <span class="badge badge-subtle-primary">{{ $school->subscriptionPackage->name }}</span>
+                            @if($package)
+                                <span class="badge badge-subtle-primary">{{ $package->name }}</span>
                             @else
                                 <span class="badge badge-subtle-secondary">No Package</span>
                             @endif
                         </td>
-                        <td class="align-middle text-center">{{ $school->users_count }}</td>
+                        <td class="align-middle text-center">
+                            <span class="fw-bold">{{ $school->users_count }}</span> / 
+                            <span class="text-500">{{ $package->user_limit ?? '∞' }}</span>
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="fw-bold">{{ $school->staff_profiles_count }}</span> / 
+                            <span class="text-500">{{ $package->staff_limit ?? '∞' }}</span>
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="fw-bold">{{ $school->students_count }}</span> / 
+                            <span class="text-500">{{ $package->student_limit ?? '∞' }}</span>
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="fw-bold">{{ number_format($totalEntries) }}</span> / 
+                            <span class="text-500">{{ $package ? number_format($package->entry_limit) : '∞' }}</span>
+                        </td>
                         <td class="align-middle white-space-nowrap text-end px-3">
                             <div class="dropdown font-sans-serif btn-reveal-trigger">
                                 <button class="btn btn-link text-600 btn-sm dropdown-toggle dropdown-caret-none btn-reveal" type="button" id="school-dropdown-{{ $school->id }}" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-haspopup="true" aria-expanded="false"><span class="fas fa-ellipsis-h fs-11"></span></button>

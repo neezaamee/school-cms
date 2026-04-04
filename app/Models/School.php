@@ -10,7 +10,7 @@ class School extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'slug', 'status', 'email', 'phone', 'logo', 'favicon', 'subscription_package_id'];
+    protected $fillable = ['name', 'slug', 'status', 'email', 'phone', 'website', 'logo', 'favicon', 'subscription_package_id'];
 
     public static function booted()
     {
@@ -33,6 +33,31 @@ class School extends Model
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function staffProfiles()
+    {
+        return $this->hasMany(StaffProfile::class);
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function examMarks()
+    {
+        return $this->hasMany(ExamMark::class);
     }
 
     public function campuses()

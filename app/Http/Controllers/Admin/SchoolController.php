@@ -8,7 +8,10 @@ use App\Models\Country;
 use App\Models\School;
 use App\Models\SubscriptionPackage;
 use App\Models\User;
+use App\Mail\SchoolWelcomeMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -21,7 +24,7 @@ class SchoolController extends Controller
     public function index()
     {
         $schools = School::with(['subscriptionPackage', 'mainCampus.city', 'mainCampus.country'])
-            ->withCount('users')
+            ->withCount(['users', 'staffProfiles', 'students', 'attendance', 'invoices', 'examMarks'])
             ->get();
             
         return view('admin.schools.index', compact('schools'));
@@ -32,9 +35,7 @@ class SchoolController extends Controller
      */
     public function create()
     {
-        $countries = Country::all();
-        $packages = SubscriptionPackage::where('is_active', true)->get();
-        return view('admin.schools.create', compact('countries', 'packages'));
+        return view('admin.schools.create');
     }
 
     /**
@@ -45,8 +46,7 @@ class SchoolController extends Controller
         $request->validate([
             // School Profile
             'school_name' => 'required|string|max:255',
-            'school_email' => 'required|email|unique:schools,email',
-            'school_phone' => 'required|string|max:20',
+            'school_website' => 'nullable|string|max:255',
             'subscription_package_id' => 'required|exists:subscription_packages,id',
             
             // Location / Main Campus
@@ -55,15 +55,15 @@ class SchoolController extends Controller
             'city_id' => 'required|exists:cities,id',
             'address' => 'required|string|max:500',
             'campus_slug' => 'required|string|unique:campuses,slug',
+            'campus_email' => 'required|email',
+            'campus_phone' => 'required|string|max:20',
             
             // Owner Profile
-            'owner_name' => 'required|string|max:255',
+            'owner_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'owner_email' => 'required|email|unique:users,email',
             'owner_phone' => 'required|string|max:20',
-            
-            // Branding
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,ico|max:1024',
+        ], [
+            'owner_name.regex' => 'The owner name may only contain letters and spaces.',
         ]);
 
         try {
@@ -71,28 +71,32 @@ class SchoolController extends Controller
 
             $school = School::create([
                 'name' => $request->school_name,
-                'email' => $request->school_email,
-                'phone' => $request->school_phone,
+                'email' => $request->owner_email,
+                'phone' => ($request->owner_phone_prefix ?? '') . $request->owner_phone,
+                'website' => $request->school_website,
                 'subscription_package_id' => $request->subscription_package_id,
                 'slug' => Str::slug($request->school_name) . '-' . time(),
             ]);
 
-            // Handle Branding Uploads
-            if ($request->hasFile('logo')) {
-                $school->logo = $this->optimizeImage($request->file('logo'), 'logos', 400, 400);
-            }
-            if ($request->hasFile('favicon')) {
-                $school->favicon = $this->optimizeImage($request->file('favicon'), 'favicons', 64, 64);
-            }
             $school->save();
+
+            // Generate a secure random temporary password
+            $tempPassword = Str::random(10);
 
             $user = User::create([
                 'name' => $request->owner_name,
                 'email' => $request->owner_email,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($tempPassword),
                 'school_id' => $school->id,
             ]);
             $user->assignRole('school owner');
+
+            try {
+                Mail::to($user->email)->send(new SchoolWelcomeMail($user, $school, $tempPassword));
+            } catch (\Exception $e) {
+                // Log error but continue registration to avoid blocking users on mail delivery issues
+                Log::error("Failed to send welcome email to {$user->email}: " . $e->getMessage());
+            }
 
             Campus::create([
                 'name' => $request->campus_name,
@@ -100,6 +104,8 @@ class SchoolController extends Controller
                 'country_id' => $request->country_id,
                 'city_id' => $request->city_id,
                 'address' => $request->address,
+                'email' => $request->campus_email,
+                'phone' => ($request->campus_phone_prefix ?? '') . $request->campus_phone,
                 'slug' => $request->campus_slug,
                 'is_main' => true,
             ]);
@@ -150,21 +156,21 @@ class SchoolController extends Controller
 
         $request->validate([
             'school_name' => 'required|string|max:255',
-            'school_email' => 'required|email|unique:schools,email,' . $school->id,
-            'school_phone' => 'required|string|max:20',
+            'school_website' => 'nullable|string|max:255',
             'subscription_package_id' => 'required|exists:subscription_packages,id',
             
             'campus_name' => 'required|string|max:255',
+            'campus_email' => 'required|email',
+            'campus_phone' => 'required|string|max:20',
             'country_id' => 'required|exists:countries,id',
             'city_id' => 'required|exists:cities,id',
             'address' => 'required|string|max:500',
             
-            'owner_name' => 'required|string|max:255',
+            'owner_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'owner_email' => 'required|email|unique:users,email,' . ($owner->id ?? 0),
-
-            // Branding
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,ico|max:1024',
+            'owner_phone' => 'required|string|max:20',
+        ], [
+            'owner_name.regex' => 'The owner name may only contain letters and spaces.',
         ]);
 
         try {
@@ -172,25 +178,19 @@ class SchoolController extends Controller
 
             $school->update([
                 'name' => $request->school_name,
-                'email' => $request->school_email,
-                'phone' => $request->school_phone,
+                'website' => $request->school_website,
+                'phone' => ($request->owner_phone_prefix ?? '') . $request->owner_phone,
+                'email' => $request->owner_email,
                 'subscription_package_id' => $request->subscription_package_id,
             ]);
-
-            // Handle Branding Uploads
-            if ($request->hasFile('logo')) {
-                $school->logo = $this->optimizeImage($request->file('logo'), 'logos', 400, 400);
-            }
-            if ($request->hasFile('favicon')) {
-                $school->favicon = $this->optimizeImage($request->file('favicon'), 'favicons', 64, 64);
-            }
-            $school->save();
 
             if ($school->mainCampus) {
                 $school->mainCampus->update([
                     'name' => $request->campus_name,
+                    'email' => $request->campus_email,
                     'country_id' => $request->country_id,
                     'city_id' => $request->city_id,
+                    'phone' => ($request->campus_phone_prefix ?? '') . $request->campus_phone,
                     'address' => $request->address,
                 ]);
             }
@@ -199,6 +199,7 @@ class SchoolController extends Controller
                 $owner->update([
                     'name' => $request->owner_name,
                     'email' => $request->owner_email,
+                    'phone' => ($request->owner_phone_prefix ?? '') . $request->owner_phone,
                 ]);
             }
 
@@ -274,5 +275,32 @@ class SchoolController extends Controller
     public function getCampuses(School $school)
     {
         return response()->json($school->campuses()->select('id', 'name')->get());
+    }
+
+    /**
+     * Check if slug is unique (AJAX).
+     */
+    public function checkSlug(Request $request)
+    {
+        $slug = $request->input('slug');
+        $exists = Campus::where('slug', $slug)->exists();
+        return response()->json(['unique' => !$exists]);
+    }
+
+    /**
+     * Check if email is unique (AJAX).
+     */
+    public function checkEmail(Request $request)
+    {
+        $email = $request->input('email');
+        $type = $request->input('type', 'user'); // user or school
+
+        if ($type === 'school') {
+            $exists = School::where('email', $email)->exists();
+        } else {
+            $exists = User::where('email', $email)->exists();
+        }
+
+        return response()->json(['unique' => !$exists]);
     }
 }

@@ -14,6 +14,7 @@ class SubscriptionPackage extends Model
         'name', 
         'student_limit', 
         'staff_limit', 
+        'user_limit', 
         'entry_limit', 
         'price', 
         'is_active',

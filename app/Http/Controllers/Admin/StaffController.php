@@ -17,18 +17,64 @@ class StaffController extends Controller
     public function index()
     {
         $user = auth()->user();
-        // Use school_id from staff_profile now
-        $query = StaffProfile::with(['user', 'designation', 'campus', 'school']);
+        $staffs = collect();
 
-        if ($user->hasRole('school owner')) {
-            $query->where('school_id', $user->school_id);
-        } elseif ($user->hasanyrole('principal|school manager|school administrator')) {
-            $query->where('campus_id', $user->campus_id);
-        } elseif (!$user->hasRole('super admin')) {
-            abort(403);
+        if ($user->hasRole('super admin')) {
+            // 1. Get all Staff Profiles
+            $profiles = StaffProfile::with(['user', 'designation', 'campus', 'school'])->latest()->get();
+            foreach ($profiles as $profile) {
+                $staffs->push((object)[
+                    'id' => $profile->id,
+                    'user_id' => $profile->user_id,
+                    'name' => $profile->name,
+                    'email' => $profile->email,
+                    'designation_name' => $profile->designation->name ?? 'N/A',
+                    'location_name' => $profile->campus->name ?? ($profile->school->name ?? 'N/A'),
+                    'profile_photo' => $profile->profile_photo,
+                    'type' => 'staff'
+                ]);
+            }
+
+            // 2. Get all School Owners as "Staff"
+            $owners = User::role('school owner')->with('school')->latest()->get();
+            foreach ($owners as $owner) {
+                $staffs->push((object)[
+                    'id' => $owner->id,
+                    'user_id' => $owner->id,
+                    'name' => $owner->name,
+                    'email' => $owner->email,
+                    'designation_name' => 'School Owner',
+                    'location_name' => $owner->school->name ?? 'N/A',
+                    'profile_photo' => null, // Owners might have different photo handling
+                    'type' => 'owner'
+                ]);
+            }
+        } else {
+            $query = StaffProfile::with(['user', 'designation', 'campus', 'school']);
+
+            if ($user->hasRole('school owner')) {
+                $query->where('school_id', $user->school_id);
+            } elseif ($user->hasanyrole('principal|school manager|school administrator')) {
+                $query->where('campus_id', $user->campus_id);
+            } else {
+                abort(403);
+            }
+
+            $profiles = $query->latest()->get();
+            foreach ($profiles as $profile) {
+                $staffs->push((object)[
+                    'id' => $profile->id,
+                    'user_id' => $profile->user_id,
+                    'name' => $profile->name,
+                    'email' => $profile->email,
+                    'designation_name' => $profile->designation->name ?? 'N/A',
+                    'location_name' => $profile->campus->name ?? ($profile->school->name ?? 'N/A'),
+                    'profile_photo' => $profile->profile_photo,
+                    'type' => 'staff'
+                ]);
+            }
         }
 
-        $staffs = $query->latest()->get();
         return view('admin.staffs.index', compact('staffs'));
     }
 
@@ -264,22 +310,25 @@ class StaffController extends Controller
         $roleName = 'staff'; // Default
         if (!$designation) return $roleName;
 
-        if ($designation->category == 'Academic Staff (Teaching)') {
+        $category = $designation->category;
+        $name = $designation->name;
+
+        if ($category == 'Academic') {
             $roleName = 'teacher';
-        } elseif (Str::contains($designation->name, ['Principal', 'Vice Principal'])) {
-            $roleName = 'principal';
-        } elseif (Str::contains($designation->name, ['Campus Manager', 'Coordinator'])) {
-            $roleName = 'campus manager';
-        } elseif (Str::contains($designation->name, ['School Administrator', 'Section Head'])) {
-            $roleName = 'school administrator';
-        } elseif ($designation->name == 'Accountant') {
-            $roleName = 'accountant';
-        } elseif ($designation->name == 'Librarian') {
-            $roleName = 'librarian';
-        } elseif ($designation->name == 'Lab Assistant') {
-            $roleName = 'lab assistant';
-        } elseif ($designation->name == 'Data Entry Operator') {
-            $roleName = 'data entry operator';
+        } elseif ($category == 'Administrative') {
+            if (Str::contains($name, 'Accountant')) {
+                $roleName = 'accountant';
+            } elseif (Str::contains($name, ['Principal', 'Manager'])) {
+                $roleName = 'principal';
+            } else {
+                $roleName = 'school administrator';
+            }
+        } elseif ($category == 'Support') {
+            if (Str::contains($name, 'Librarian')) {
+                $roleName = 'librarian';
+            } elseif (Str::contains($name, 'Lab')) {
+                $roleName = 'lab assistant';
+            }
         }
 
         return $roleName;

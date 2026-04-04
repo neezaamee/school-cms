@@ -24,6 +24,7 @@
                     <tr>
                         <th class="white-space-nowrap align-middle">Package Name</th>
                         <th class="white-space-nowrap align-middle text-center">Price</th>
+                        <th class="white-space-nowrap align-middle text-center">User Limit (Admin)</th>
                         <th class="white-space-nowrap align-middle text-center">Student Limit</th>
                         <th class="white-space-nowrap align-middle text-center">Staff Limit</th>
                         <th class="white-space-nowrap align-middle text-center">Entry Limit</th>
@@ -36,6 +37,7 @@
                     <tr class="btn-reveal-trigger">
                         <td class="align-middle white-space-nowrap fw-semi-bold">{{ $package->name }}</td>
                         <td class="align-middle text-center">${{ number_format($package->price, 2) }}</td>
+                        <td class="align-middle text-center">{{ number_format($package->user_limit) }}</td>
                         <td class="align-middle text-center">{{ number_format($package->student_limit) }}</td>
                         <td class="align-middle text-center">{{ number_format($package->staff_limit) }}</td>
                         <td class="align-middle text-center">{{ number_format($package->entry_limit) }}</td>

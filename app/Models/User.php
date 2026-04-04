@@ -25,6 +25,8 @@ class User extends Authenticatable
         'password',
         'school_id',
         'campus_id',
+        'must_change_password',
+        'password_changed_at',
     ];
 
     public function school()
@@ -62,6 +64,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'password_changed_at' => 'datetime',
         ];
     }
 }

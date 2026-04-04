@@ -32,7 +32,7 @@
                 </div>
                 <div class="col-md-4 text-start">
                     <label class="form-label" for="release_date">Release Date</label>
-                    <input class="form-control" id="release_date" name="release_date" type="date" value="{{ old('release_date', isset($changelog->release_date) ? $changelog->release_date->format('Y-m-d') : now()->format('Y-m-d')) }}" />
+                    <input class="form-control mask-date" id="release_date" name="release_date" type="text" placeholder="dd/mm/yyyy" value="{{ old('release_date', isset($changelog->release_date) ? $changelog->release_date->format('d/m/Y') : now()->format('d/m/Y')) }}" />
                 </div>
                 <div class="col-md-4 d-flex align-items-end mb-1">
                     <div class="form-check form-switch mb-0">

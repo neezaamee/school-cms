@@ -31,8 +31,14 @@
     <link href="{{ asset('vendors/datatables.net-bs5/dataTables.bootstrap5.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendors/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendors/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendors/choices/choices.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/theme.css') }}" rel="stylesheet" id="style-default">
     <link href="{{ asset('assets/css/user.css') }}" rel="stylesheet" id="user-style-default">
+    
+    <!-- Alpine.js & Axios for Reactivity -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    @livewireStyles
   </head>
 
   <body>
@@ -59,7 +65,7 @@
                 @else
                     <img class="me-2" src="{{ asset('assets/img/icons/spot-illustrations/falcon.png') }}" alt="" width="40" />
                 @endif
-                <span class="font-sans-serif text-primary">{{ $schoolBranding ? Str::limit($schoolBranding->name, 10) : 'ESS' }}</span>
+                <span class="font-sans-serif text-primary">{{ $schoolBranding ? Str::limit($schoolBranding->name, 32) : 'ESS' }}</span>
               </div>
             </a>
           </div>
@@ -77,15 +83,34 @@
                   </a>
                 </li>
                 @hasrole('super admin')
+                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
+                    <div class="col-auto navbar-vertical-label">Administration
+                    </div>
+                    <div class="col ps-0">
+                      <hr class="mb-0 navbar-vertical-divider">
+                    </div>
+                  </div>
                 <li class="nav-item">
-                  <a class="nav-link text-uppercase" href="#!" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-text ps-1 fs-11 fw-bold text-600">Administration</span></div>
+                  <a class="nav-link dropdown-indicator" href="#internal-setup-nav" role="button" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('schools.*', 'admin.campuses.*', 'admin.staffs.*') ? 'true' : 'false' }}" aria-controls="internal-setup-nav">
+                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-sitemap"></span></span><span class="nav-link-text ps-1">Internal Setup</span></div>
                   </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link {{ request()->routeIs('schools.*') ? 'active' : '' }}" href="{{ route('schools.index') }}" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-university"></span></span><span class="nav-link-text ps-1">Schools</span></div>
-                  </a>
+                  <ul class="nav collapse {{ request()->routeIs('schools.*', 'admin.campuses.*', 'admin.staffs.*') ? 'show' : '' }}" id="internal-setup-nav">
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('schools.*') ? 'active' : '' }}" href="{{ route('schools.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Schools</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.campuses.*') ? 'active' : '' }}" href="{{ route('admin.campuses.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Campuses</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Staff</span></div>
+                      </a>
+                    </li>
+                  </ul>
                 </li>
                 @role('super admin')
                 <li class="nav-item">
@@ -103,22 +128,18 @@
                     <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-comments"></span></span><span class="nav-link-text ps-1">User Feedback</span></div>
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link {{ request()->routeIs('admin.campuses.*') ? 'active' : '' }}" href="{{ route('admin.campuses.index') }}" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-map-marker-alt"></span></span><span class="nav-link-text ps-1">All Campuses</span></div>
-                  </a>
-                </li>
                 @endrole
                 <li class="nav-item">
                   <a class="nav-link {{ request()->routeIs('subscription-packages.*') ? 'active' : '' }}" href="{{ route('subscription-packages.index') }}" role="button">
                     <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-tags"></span></span><span class="nav-link-text ps-1">Subscriptions</span></div>
                   </a>
                 </li>
+                <!-- todo: remove this when we have a better way to manage users -->
                 <li class="nav-item">
                   <a class="nav-link" href="{{ route('users.index') }}" role="button">
                     <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-users"></span></span><span class="nav-link-text ps-1">User Management</span></div>
                   </a>
-                </li>
+                </li>      
                 <li class="nav-item">
                   <a class="nav-link dropdown-indicator" href="#rbac-nav" role="button" data-bs-toggle="collapse" aria-expanded="false" aria-controls="rbac-nav">
                     <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-user-shield"></span></span><span class="nav-link-text ps-1">RBAC</span></div>
@@ -132,28 +153,126 @@
                       </a></li>
                   </ul>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-user-tie"></span></span><span class="nav-link-text ps-1">Staff Management</span></div>
-                  </a>
-                </li>
                 @endhasrole
 
-                @hasanyrole('school owner|principal|school manager|school administrator|campus manager')
+                @hasanyrole('school owner|principal|school manager|school administrator|campus manager|data entry operator')
                 <li class="nav-item">
                   <a class="nav-link text-uppercase" href="#!" role="button">
                     <div class="d-flex align-items-center"><span class="nav-link-text ps-1 fs-11 fw-bold text-600">School Management</span></div>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-user-tie"></span></span><span class="nav-link-text ps-1">Staff Members</span></div>
-                  </a>
+                    <ul class="nav collapse {{ request()->routeIs('admin.staffs.*', 'admin.staff-designations.*') ? 'show' : '' }}" id="staff-management">
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.staffs.index') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">All Staff Members</span></div>
+                            </a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.staff-designations.index') ? 'active' : '' }}" href="{{ route('admin.staff-designations.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Designations</span></div>
+                            </a></li>
+                    </ul>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link border-2 border-dashed border-warning" href="{{ route('school-users.index') }}" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-users-cog"></span></span><span class="nav-link-text ps-1">Students (Temp)</span></div>
+                  <a class="nav-link dropdown-indicator" href="#student-management" role="button" data-bs-toggle="collapse" aria-expanded="false" aria-controls="student-management">
+                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-user-graduate"></span></span><span class="nav-link-text ps-1">Student Management</span></div>
                   </a>
+                  <ul class="nav collapse {{ request()->routeIs('admin.students.*', 'admin.enrollments.*', 'admin.attendance.*') ? 'show' : '' }}" id="student-management">
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.students.index') ? 'active' : '' }}" href="{{ route('admin.students.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">All Students</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.students.create') && !request()->has('lang') ? 'active' : '' }}" href="{{ route('admin.students.create') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Enrollment (English)</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.students.create') && request()->input('lang') == 'ur' ? 'active' : '' }}" href="{{ route('admin.students.create', ['lang' => 'ur']) }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Enrollment (Urdu)</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}" href="{{ route('admin.attendance.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Daily Attendance</span></div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link dropdown-indicator" href="#academic-management" role="button" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('admin.grade-levels.*', 'admin.sections.*', 'admin.subjects.*') ? 'true' : 'false' }}" aria-controls="academic-management">
+                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-book"></span></span><span class="nav-link-text ps-1">Academic Management</span></div>
+                  </a>
+                  <ul class="nav collapse {{ request()->routeIs('admin.grade-levels.*', 'admin.sections.*', 'admin.subjects.*') ? 'show' : '' }}" id="academic-management">
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.grade-levels.*') ? 'active' : '' }}" href="{{ route('admin.grade-levels.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Grade Levels</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.sections.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Sections</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}" href="{{ route('admin.subjects.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Subjects</span></div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link dropdown-indicator" href="#examination-management" role="button" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('admin.grade-scales.*', 'admin.exam-terms.*', 'admin.exams.*') ? 'true' : 'false' }}" aria-controls="examination-management">
+                    <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-file-signature"></span></span><span class="nav-link-text ps-1">Examination Engine</span></div>
+                  </a>
+                  <ul class="nav collapse {{ request()->routeIs('admin.grade-scales.*', 'admin.exam-terms.*', 'admin.exams.*') ? 'show' : '' }}" id="examination-management">
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.grade-scales.*') ? 'active' : '' }}" href="{{ route('admin.grade-scales.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Grade Scales</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.exam-terms.*') ? 'active' : '' }}" href="{{ route('admin.exam-terms.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Exam Terms</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Exam Schedule</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.mark-entry.*') ? 'active' : '' }}" href="{{ route('admin.mark-entry.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Mark Entry</span></div>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ request()->routeIs('admin.results.*') ? 'active' : '' }}" href="{{ route('admin.results.index') }}">
+                        <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Term Results</span></div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link dropdown-indicator" href="#fees" role="button" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('admin.fee-categories.*', 'admin.fee-structures.*', 'admin.invoices.*', 'admin.payments.*') ? 'true' : 'false' }}" aria-controls="fees">
+                        <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-file-invoice-dollar"></span></span><span class="nav-link-text ps-1">Fee Management</span></div>
+                    </a>
+                    <ul class="nav collapse {{ request()->routeIs('admin.fee-categories.*', 'admin.fee-structures.*', 'admin.invoices.*', 'admin.payments.*') ? 'show' : '' }}" id="fees">
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.fee-categories.index') ? 'active' : '' }}" href="{{ route('admin.fee-categories.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Fee Categories</span></div>
+                            </a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.fee-structures.index') ? 'active' : '' }}" href="{{ route('admin.fee-structures.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Fee Structures</span></div>
+                            </a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.invoices.index') ? 'active' : '' }}" href="{{ route('admin.invoices.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Invoices / PSID</span></div>
+                            </a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Collect Fees</span></div>
+                            </a></li>
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.finance.reports.*') ? 'active' : '' }}" href="{{ route('admin.finance.reports.collection') }}">
+                                <div class="d-flex align-items-center"><span class="nav-link-text ps-1">Financial Reports</span></div>
+                            </a></li>
+                    </ul>
                 </li>
                 @endhasanyrole
 
@@ -165,11 +284,13 @@
                 </li>
                 @endhasrole
 
-                <li class="nav-item">
-                  <a class="nav-link text-uppercase" href="#!" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-text ps-1 fs-11 fw-bold text-600">Community</span></div>
-                  </a>
-                </li>
+                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
+                    <div class="col-auto navbar-vertical-label">Community
+                    </div>
+                    <div class="col ps-0">
+                      <hr class="mb-0 navbar-vertical-divider">
+                    </div>
+                  </div>
                 <li class="nav-item">
                   <a class="nav-link {{ request()->routeIs('user.changelogs') ? 'active' : '' }}" href="{{ route('user.changelogs') }}">
                     <div class="d-flex align-items-center"><span class="nav-link-icon"><span class="fas fa-rocket"></span></span><span class="nav-link-text ps-1">What's New</span></div>
@@ -196,18 +317,15 @@
                 @else
                     <img class="me-2" src="{{ asset('assets/img/icons/spot-illustrations/falcon.png') }}" alt="" width="40" />
                 @endif
-                <span class="font-sans-serif text-primary">{{ $schoolBranding ? Str::limit($schoolBranding->name, 10) : 'ESS' }}</span>
+                <span class="font-sans-serif text-primary">{{ $schoolBranding ? Str::limit($schoolBranding->name, 32) : 'ESS' }}</span>
               </div>
             </a>
 
-            <!-- Search Box (Decorative) -->
             <ul class="navbar-nav align-items-center d-none d-lg-block">
               <li class="nav-item">
-                <div class="search-box">
-                  <form class="position-relative" data-bs-toggle="search" data-bs-display="static">
-                    <input class="form-control search-input fuzzy-search" type="search" placeholder="Search..." aria-label="Search" />
-                    <span class="fas fa-search search-box-icon"></span>
-                  </form>
+                <div class="ms-3">
+                  <h6 class="mb-0 text-primary fw-bold">{{ $schoolBranding->name ?? 'ElafTech School Services' }}</h6>
+                  <small class="text-500 fs-11">Official Management Portal</small>
                 </div>
               </li>
             </ul>
@@ -432,15 +550,35 @@
     <script src="{{ asset('vendors/is/is.min.js') }}"></script>
     <script src="{{ asset('vendors/fontawesome/all.min.js') }}"></script>
     <script src="{{ asset('vendors/lodash/lodash.min.js') }}"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
     <script src="{{ asset('vendors/list.js/list.min.js') }}"></script>
     <script src="{{ asset('vendors/datatables.net/dataTables.min.js') }}"></script>
     <script src="{{ asset('vendors/datatables.net-bs5/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('vendors/select2/select2.full.min.js') }}"></script>
+    <script src="{{ asset('vendors/choices/choices.min.js') }}"></script>
+    <script src="{{ asset('vendors/inputmask/inputmask.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/jquery.inputmask.min.js"></script>
     <script src="{{ asset('assets/js/theme.js') }}"></script>
 
     <script>
         $(document).ready(function() {
+            // Global Inputmask initialization
+            // We use data-inputmask for specific masks, but can also define classes
+            $(":input").inputmask();
+
+            // Custom masks for common fields
+            $('.mask-cnic').inputmask("99999-9999999-9");
+            $('.mask-phone').inputmask("9999-9999999");
+            $('.mask-date').inputmask("99/99/9999", { placeholder: "dd/mm/yyyy" });
+            $('.mask-amount').inputmask('currency', {
+                prefix: '', 
+                rightAlign: false,
+                groupSeparator: ',',
+                autoGroup: true,
+                digits: 0,
+                digitsOptional: false,
+                placeholder: '0'
+            });
+
             // Global DataTable initialization for tables with .datatable class
             $('.datatable').each(function() {
                 $(this).DataTable({
@@ -464,5 +602,6 @@
     </script>
 
     @stack('scripts')
+    @livewireScripts
   </body>
 </html>

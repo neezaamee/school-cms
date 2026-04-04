@@ -16,6 +16,8 @@ class Campus extends Model
         'country_id', 
         'city_id', 
         'address', 
+        'email', 
+        'phone', 
         'slug', 
         'is_main'
     ];

@@ -34,6 +34,7 @@ class SubscriptionPackageController extends Controller
             'name' => 'required|string|max:255',
             'student_limit' => 'required|integer|min:0',
             'staff_limit' => 'required|integer|min:0',
+            'user_limit' => 'required|integer|min:0',
             'entry_limit' => 'required|integer|min:0',
             'price' => 'required|numeric|min:0',
         ]);

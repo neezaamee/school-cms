@@ -106,11 +106,11 @@
                             <div class="row g-3">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" for="phone">Phone Number</label>
-                                    <input class="form-control" id="phone" name="phone" type="text" value="{{ old('phone', $staff->phone) }}" />
+                                    <input class="form-control mask-phone" id="phone" name="phone" type="text" value="{{ old('phone', $staff->phone) }}" />
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" for="emergency_phone">Emergency Phone</label>
-                                    <input class="form-control" id="emergency_phone" name="emergency_phone" type="text" value="{{ old('emergency_phone', $staff->emergency_phone) }}" />
+                                    <input class="form-control mask-phone" id="emergency_phone" name="emergency_phone" type="text" value="{{ old('emergency_phone', $staff->emergency_phone) }}" />
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label" for="address">Address</label>
