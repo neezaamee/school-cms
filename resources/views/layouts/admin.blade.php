@@ -156,11 +156,13 @@
                 @endhasrole
 
                 @hasanyrole('school owner|principal|school manager|school administrator|campus manager|data entry operator')
-                <li class="nav-item">
-                  <a class="nav-link text-uppercase" href="#!" role="button">
-                    <div class="d-flex align-items-center"><span class="nav-link-text ps-1 fs-11 fw-bold text-600">School Management</span></div>
-                  </a>
-                </li>
+                <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
+                    <div class="col-auto navbar-vertical-label">School Management
+                    </div>
+                    <div class="col ps-0">
+                      <hr class="mb-0 navbar-vertical-divider">
+                    </div>
+                  </div>
                 <li class="nav-item">
                     <ul class="nav collapse {{ request()->routeIs('admin.staffs.*', 'admin.staff-designations.*') ? 'show' : '' }}" id="staff-management">
                         <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.staffs.index') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}">
